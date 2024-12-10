@@ -1,121 +1,125 @@
-C program implement queue using two stacks using  enqueue costly
-
-
 #include <stdio.h>
+#include <stdlib.h>
+#define MAX 10
+//C program to implement double ended queue
+int deque[MAX];
+int front = -1;
+int rear = -1;
 
-
-// Stack structure
-struct Stack {
-    int top;
-    unsigned capacity;
-    int* array;
-};
-
-// Function to create a stack of given capacity
-struct Stack* createStack(unsigned capacity) {
-    struct Stack* stack = (struct Stack*)malloc(sizeof(struct Stack));
-    stack->capacity = capacity;
-    stack->top = -1;
-    stack->array = (int*)malloc(stack->capacity * sizeof(int));
-    return stack;
+int isFull() {
+    return ((front == 0 && rear == MAX - 1) || (front == rear + 1));
 }
 
-// Stack is full when top is equal to the last index
-bool isFull(struct Stack* stack) {
-    return stack->top == stack->capacity - 1;
+int isEmpty() {
+    return (front == -1);
 }
 
-// Stack is empty when top is -1
-bool isEmpty(struct Stack* stack) {
-    return stack->top == -1;
-}
-
-// Function to add an item to stack
-void push(struct Stack* stack, int item) {
-    if (isFull(stack)) return;
-    stack->array[++stack->top] = item;
-}
-
-// Function to remove an item from stack
-int pop(struct Stack* stack) {
-    if (isEmpty(stack)) return -1;
-    return stack->array[stack->top--];
-}
-
-// Function to peek the top item of stack
-int peek(struct Stack* stack) {
-    if (isEmpty(stack)) return -1;
-    return stack->array[stack->top];
-}
-
-// Queue structure using two stacks
-struct Queue {
-    struct Stack* stack1;
-    struct Stack* stack2;
-};
-
-// Function to create a queue using two stacks
-struct Queue* createQueue(unsigned capacity) {
-    struct Queue* queue = (struct Queue*)malloc(sizeof(struct Queue));
-    queue->stack1 = createStack(capacity);
-    queue->stack2 = createStack(capacity);
-    return queue;
-}
-
-// Function to add an item to the queue
-void enQueue(struct Queue* queue, int item) {
-    // Move all elements from stack1 to stack2
-    while (!isEmpty(queue->stack1)) {
-        push(queue->stack2, pop(queue->stack1));
+void insertFront(int key) {
+    if (isFull()) {
+        printf("Overflow: Unable to insert element at the front. Deque is full.\n");
+        return;
     }
 
-    // Push the new item onto stack1
-    push(queue->stack1, item);
-
-    // Move all elements back to stack1
-    while (!isEmpty(queue->stack2)) {
-        push(queue->stack1, pop(queue->stack2));
+    if (front == -1) {
+        front = 0;
+        rear = 0;
+    } else if (front == 0) {
+        front = MAX - 1;
+    } else {
+        front = front - 1;
     }
+
+    deque[front] = key;
+    printf("Inserted %d at the front.\n", key);
 }
 
-// Function to remove an item from the queue
-int deQueue(struct Queue* queue) {
-    if (isEmpty(queue->stack1)) {
-        printf("Queue is empty!\n");
-        return -1; // Indicate that the queue is empty
+void insertRear(int key) {
+    if (isFull()) {
+        printf("Overflow: Unable to insert element at the rear. Deque is full.\n");
+        return;
     }
-    return pop(queue->stack1);
-}
 
-// Function to get the front item of the queue
-int front(struct Queue* queue) {
-    if (isEmpty(queue->stack1)) {
-        printf("Queue is empty!\n");
-        return -1; // Indicate that the queue is empty
+    if (rear == -1) {
+        front = 0;
+        rear = 0;
+    } else if (rear == MAX - 1) {
+        rear = 0;  // wrap around
+    } else {
+        rear = rear + 1;
     }
-    return peek(queue->stack1);
+
+    deque[rear] = key;
+    printf("Inserted %d at the rear.\n", key);
 }
 
-// Function to check if the queue is empty
-bool isQueueEmpty(struct Queue* queue) {
-    return isEmpty(queue->stack1);
+void deleteFront() {
+    if (isEmpty()) {
+        printf("Underflow: Unable to delete element from the front. Deque is empty.\n");
+        return;
+    }
+
+    int removed = deque[front];
+
+    if (front == rear) {  // Deque has only one element
+        front = -1;
+        rear = -1;
+    } else if (front == MAX - 1) {
+        front = 0;  // wrap around
+    } else {
+        front = front + 1;
+    }
+
+    printf("Deleted %d from the front.\n", removed);
 }
 
-// Main function to demonstrate the queue operations
+void deleteRear() {
+    if (isEmpty()) {
+        printf("Underflow: Unable to delete element from the rear. Deque is empty.\n");
+        return;
+    }
+
+    int removed = deque[rear];
+
+    if (front == rear) {
+        front = -1;
+        rear = -1;
+    } else if (rear == 0) {
+        rear = MAX - 1;
+    } else {
+        rear = rear - 1;
+    }
+
+    printf("Deleted %d from the rear.\n", removed);
+}
+void displayDeque() {
+    if (isEmpty()) {
+        printf("Deque is empty.\n");
+        return;
+    }
+
+    printf("Deque elements are: ");
+    int i = front;
+    while (1) {
+        printf("%d ", deque[i]);
+        if (i == rear)
+            break;
+        i = (i + 1) % MAX;
+    }
+    printf("\n");
+}
 int main() {
-    struct Queue* queue = createQueue(100);
+    insertRear(5);
+    displayDeque();
 
-    enQueue(queue, 1);
-    enQueue(queue, 2);
-    enQueue(queue, 3);
+    insertFront(15);
+    displayDeque();
 
-    printf("Front element is: %d\n", front(queue)); // Should print 1
+    insertRear(25);
+    displayDeque();
 
-    printf("Dequeued: %d\n", deQueue(queue)); // Should print 1
-    printf("Dequeued: %d\n", deQueue(queue)); // Should print 2
+    deleteFront();
+    displayDeque();
 
-    enQueue(queue, 4);
-    printf("Front element is: %d\n", front(queue)); // Should print 3
-
-
+    deleteRear();
+    displayDeque();
 }
